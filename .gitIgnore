@@ -1,0 +1,47 @@
+.DS_Store
+node_modules
+dist
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Generated js files
+src/**/*.js*
+!src/**/*.stories.*
+
+# Tests setup file
+!tests/setup.ts
+
+# Locales folder
+!src/i18n/**/*.ts
+!src/i18n/**/*.json
+
+# Jest coverage dir
+coverage
+junit.xml
+
+# merge .orig
+*.orig
+
+# Others
+*.ini
+**/.ssh/**/*
+!docker/.ssh/readme.md
+
+.history
+translations.json
