@@ -1,5 +1,7 @@
 import inquirer from "inquirer";
-import { fromCsvToJson, fromCsvToJsonFile, generateTranslations, getMissingTranslations } from "./app.js";
+import { fromCsvToJson, fromCsvToJsonFile } from "./functions/fromCsvToJson.js";
+import { generateTranslations } from "./functions/generateXliff.js";
+import { getMissingTranslations } from "./functions/missingTranslations.js";
 
 const translations = fromCsvToJson();
 

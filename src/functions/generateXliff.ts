@@ -1,40 +1,8 @@
-import { Translation } from "./types/translations.js";
-import csvToJson from "convert-csv-to-json";
 import xmlFormat from "xml-formatter";
 import fs from "fs";
+import { fromCsvToJson } from "./fromCsvToJson.js";
+import { Translation } from "../types/translations.js";
 
-export function fromCsvToJson(): any[] {
-    let fileInputName = "input/translations.csv";
-    let jsonOutput = null;
-    try {
-        jsonOutput = csvToJson.parseSubArray("*", ",").getJsonFromCsv(fileInputName);
-        if (!jsonOutput) {
-            throw new Error("The input file is an invalid CSV file");
-        }
-
-    } catch (e) {
-        throw new Error(`The CSV file is not valid: ${e}`);
-    }
-    const incompletedTranslations = jsonOutput.filter((translationRow: Translation) => !translationRow.id || !translationRow.key);
-
-    if (incompletedTranslations.length) {
-        console.warn("The input file is missing values for id or key.", incompletedTranslations);
-    }
-
-    return jsonOutput;
-}
-
-export function fromCsvToJsonFile(): void {
-    let fileInputName = "input/translations.csv";
-    let fileOutputName = "translations.json";
-    csvToJson.generateJsonFileFromCsv(fileInputName, fileOutputName);
-}
-
-export function getMissingTranslations(languageField: string): string[] {
-    return fromCsvToJson()
-        .filter((translation) => !translation[languageField])
-        .map((translation) => translation.key);
-}
 
 export function getTargetTag(translationValue: string): string {
     return translationValue ? `<target state="translated">${translationValue}</target>` : `<target state="new" />`;
