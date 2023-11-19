@@ -3,6 +3,7 @@ import { fromCsvToJson, fromCsvToJsonFile } from "./functions/fromCsvToJson.js";
 import { generateTranslations } from "./functions/generateXliff.js";
 import { getMissingTranslations } from "./functions/missingTranslations.js";
 import { fromXliffToCsv } from "./functions/fromXliffToCsv.js";
+import { fromMultipleXliffToCsv } from "./functions/fromMultipleXliffToCsv.js";
 
 const translations = fromCsvToJson();
 
@@ -12,6 +13,7 @@ const availableLanguages =
 const CONVERT_CSV_TO_XLIFF = "Convert csv to xliff";
 const CONVERT_CSV_TO_JSON_OPT = "Convert csv to json";
 const CONVERT_XLIFF_TO_CSV_OPT = "Convert xliff to csv";
+const CONVERT_MULTIPLE_XLIFF_TO_CSV_OPT = "Convert multiple xliff to csv";
 const CHECK_MISSING_TRANSLATIONS_OPT = "Check for missing translations";
 
 const menu = await inquirer.prompt([
@@ -21,8 +23,9 @@ const menu = await inquirer.prompt([
         message: "Which utils do you want to use?",
         choices: [
             CONVERT_CSV_TO_XLIFF,
-            CONVERT_XLIFF_TO_CSV_OPT,
             CONVERT_CSV_TO_JSON_OPT,
+            CONVERT_XLIFF_TO_CSV_OPT,
+            CONVERT_MULTIPLE_XLIFF_TO_CSV_OPT,
             CHECK_MISSING_TRANSLATIONS_OPT,
         ],
     },
@@ -52,7 +55,11 @@ switch (menu.option) {
                 },
             },
         ]);
-        generateTranslations(convertToXliffAnswer.languageCode, convertToXliffAnswer.language, convertToXliffAnswer.module);
+        generateTranslations(
+            convertToXliffAnswer.languageCode,
+            convertToXliffAnswer.language,
+            convertToXliffAnswer.module
+        );
         break;
 
     case CHECK_MISSING_TRANSLATIONS_OPT:
@@ -88,6 +95,18 @@ switch (menu.option) {
             },
         ]);
         fromXliffToCsv(csvToXliffAnswer.filePath);
+        break;
+
+    case CONVERT_MULTIPLE_XLIFF_TO_CSV_OPT:
+        const multipleCsvToXliffAnswer = await inquirer.prompt([
+            {
+                type: "input",
+                name: "dirPath",
+                message: "What is the dir path of the xliff file?",
+                default: "./input",
+            },
+        ]);
+        fromMultipleXliffToCsv(multipleCsvToXliffAnswer.dirPath);
         break;
 
     default:

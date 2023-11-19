@@ -32,10 +32,10 @@ export const fromXliffToCsv = (fileName: string): any => {
     const { xliff } = xmlParser.parse(xmlContent);
 
     const translations = getTranslations(xliff);
-    const csvParser = new Parser({});
+    const csvParser = new Parser({delimiter: ";"});
     const csvData = csvParser.parse(translations);
 
-    const writeStream = fs.createWriteStream(`translations.csv`);
+    const writeStream = fs.createWriteStream(`translations.csv`, "utf16le");
     writeStream.write(csvData);
     writeStream.end();
     console.log("File saved: translations.csv");

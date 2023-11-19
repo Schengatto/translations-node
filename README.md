@@ -3,7 +3,7 @@
 This application provides a set of utility functions for weblate to:
 
 - Generate xliff file: create a xliff file with the required translations from a csv file
-- Generate csv file: create a csv file from a specific xliff file
+- Generate csv file: create a csv file from one or multiple xliff files
 - Convert cvs file to json: convert the translations.csv to translations.json
 - Check missing translations: check if there are missing translations for a specific language
 
