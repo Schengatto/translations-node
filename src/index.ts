@@ -103,7 +103,7 @@ switch (menu.option) {
                 type: "input",
                 name: "dirPath",
                 message: "What is the dir path of the xliff file?",
-                default: "./input",
+                default: "./input/xliff-module",
             },
         ]);
         fromMultipleXliffToCsv(multipleCsvToXliffAnswer.dirPath);
