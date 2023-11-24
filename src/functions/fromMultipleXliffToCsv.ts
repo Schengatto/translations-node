@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { LanguageTranslations, Translation } from "../types/translations.js";
-import { XMLParser } from "fast-xml-parser";
-import { Parser } from "@json2csv/plainjs";
+
+import { csvParser } from "../common/csvParser.js";
+import { xmlParser } from "../common/xmlParser.js";
 
 const getLanguageCode = (xliff: Record<string, any>): string => {
     return xliff?.file["@_target-language"] ?? "";
@@ -30,7 +31,7 @@ const readFile = (filePath: string): string => {
     return data.toString();
 };
 
-export const fromMultipleXliffToCsv = (xliffFolder: string): any => {
+export const fromMultipleXliffToCsv = (xliffFolder: string, filters: string[] = []): any => {
     const map = new Map<string, Translation>();
     const dirPath = path.resolve(xliffFolder);
 
@@ -40,11 +41,22 @@ export const fromMultipleXliffToCsv = (xliffFolder: string): any => {
         .filter((fileName: string) => fileName.endsWith(".xliff"))
         .forEach((fileName: string) => {
             const xmlContent = readFile(`${dirPath}/${fileName}`);
-            const xmlParser = new XMLParser({ ignoreAttributes: false });
             const { xliff } = xmlParser.parse(xmlContent);
-
             const { languageCode, translations } = getTranslations(xliff);
-            translations.forEach((translation: Translation) => {
+
+            const filteredTranslations = filters.length ? [] : translations;
+            if (filters.length) {
+                translations.forEach(t => {
+                    for(let filter of filters) {
+                        if (t.key.includes(filter)) {
+                            filteredTranslations.push(t);
+                            break;
+                        }
+                    }
+                })
+            }
+
+            filteredTranslations.forEach((translation: Translation) => {
                 const key = translation.key;
                 map.has(key)
                     ? map.set(key, { ...map.get(key), [languageCode]: translation[languageCode] } as Translation)
@@ -52,12 +64,14 @@ export const fromMultipleXliffToCsv = (xliffFolder: string): any => {
             });
         });
 
-    const translations = [...map.values()];
-    const csvParser = new Parser({ delimiter: ";" });
-    const csvData = csvParser.parse(translations);
+    const filteredTranslations = [...map.values()];
+    const csvData = csvParser.parse(filteredTranslations);
 
-    const writeStream = fs.createWriteStream(`translations.csv`, "utf16le");
-    writeStream.write(csvData);
+     // Remove quotes around each field
+    const updatedData = csvData.replace(/\"(.*?)\"/g, '$1');
+
+    const writeStream = fs.createWriteStream(`translations.csv`);
+    writeStream.write(updatedData);
     writeStream.end();
     console.log("File saved: translations.csv");
 };

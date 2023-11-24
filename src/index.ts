@@ -5,10 +5,15 @@ import { getMissingTranslations } from "./functions/missingTranslations.js";
 import { fromXliffToCsv } from "./functions/fromXliffToCsv.js";
 import { fromMultipleXliffToCsv } from "./functions/fromMultipleXliffToCsv.js";
 
-const translations = fromCsvToJson();
 
-const availableLanguages =
-    translations.length > 0 ? Object.keys(translations[0]).filter((key) => !["id", "key"].includes(key)) : [];
+const getAvailableLanguages = (): string[] => {
+    const translations = fromCsvToJson();
+    const availableLanguages =
+        translations.length > 0 ? Object.keys(translations[0]).filter((key) => !["id", "key"].includes(key)) : [];
+
+    return availableLanguages;
+};
+
 
 const CONVERT_CSV_TO_XLIFF = "Convert csv to xliff";
 const CONVERT_CSV_TO_JSON_OPT = "Convert csv to json";
@@ -44,7 +49,7 @@ switch (menu.option) {
                 type: "list",
                 name: "language",
                 message: "What is the target language?",
-                choices: availableLanguages,
+                choices: getAvailableLanguages(),
             },
             {
                 type: "input",
@@ -68,7 +73,7 @@ switch (menu.option) {
                 type: "list",
                 name: "language",
                 message: "What is the target language?",
-                choices: availableLanguages,
+                choices: getAvailableLanguages(),
             },
         ]);
         const missingTranslations = getMissingTranslations(missingTranslationsAnswer.language);
@@ -105,8 +110,16 @@ switch (menu.option) {
                 message: "What is the dir path of the xliff file?",
                 default: "./input/xliff-module",
             },
+            {
+                type: "input",
+                name: "rowFilters",
+                message:
+                    "Type key filters separed by comma (eg: 'mykey,mykey2') or leave empty in order to parse all keys",
+                default: "",
+            },
         ]);
-        fromMultipleXliffToCsv(multipleCsvToXliffAnswer.dirPath);
+        const filters = multipleCsvToXliffAnswer.rowFilters.split(",");
+        fromMultipleXliffToCsv(multipleCsvToXliffAnswer.dirPath, filters);
         break;
 
     default:

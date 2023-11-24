@@ -1,7 +1,7 @@
 import fs from "fs";
 import { Translation } from "../types/translations.js";
-import { XMLParser } from "fast-xml-parser";
-import { Parser } from '@json2csv/plainjs';
+import { csvParser } from "../common/csvParser.js";
+import { xmlParser } from "../common/xmlParser.js";
 
 const getLanguageCode = (xliff: Record<string, any>): string => {
     return xliff?.file["@_target-language"] ?? "";
@@ -28,11 +28,9 @@ const readFile = (filePath: string): string => {
 
 export const fromXliffToCsv = (fileName: string): any => {
     const xmlContent = readFile(fileName);
-    const xmlParser = new XMLParser({ ignoreAttributes: false });
     const { xliff } = xmlParser.parse(xmlContent);
 
     const translations = getTranslations(xliff);
-    const csvParser = new Parser({delimiter: ";"});
     const csvData = csvParser.parse(translations);
 
     const writeStream = fs.createWriteStream(`translations.csv`, "utf16le");
