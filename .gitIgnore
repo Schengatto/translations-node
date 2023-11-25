@@ -46,3 +46,4 @@ junit.xml
 .history
 translations.json
 *.xliff
+*.csv

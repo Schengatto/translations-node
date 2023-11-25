@@ -44,17 +44,9 @@ export const fromMultipleXliffToCsv = (xliffFolder: string, filters: string[] = 
             const { xliff } = xmlParser.parse(xmlContent);
             const { languageCode, translations } = getTranslations(xliff);
 
-            const filteredTranslations = filters.length ? [] : translations;
-            if (filters.length) {
-                translations.forEach(t => {
-                    for(let filter of filters) {
-                        if (t.key.includes(filter)) {
-                            filteredTranslations.push(t);
-                            break;
-                        }
-                    }
-                })
-            }
+            const filteredTranslations = filters.length 
+            ? translations.filter(t => filters.some((filter) => t.key.includes(filter)))
+            : translations;
 
             filteredTranslations.forEach((translation: Translation) => {
                 const key = translation.key;
