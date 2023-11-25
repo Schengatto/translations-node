@@ -2,6 +2,7 @@ import fs from "fs";
 import { Translation } from "../types/translations.js";
 import { csvParser } from "../common/csvParser.js";
 import { xmlParser } from "../common/xmlParser.js";
+import inquirer from "inquirer";
 
 const getLanguageCode = (xliff: Record<string, any>): string => {
     return xliff?.file["@_target-language"] ?? "";
@@ -26,7 +27,7 @@ const readFile = (filePath: string): string => {
     return data.toString();
 };
 
-export const fromXliffToCsv = (fileName: string): any => {
+const fromXliffToCsv = (fileName: string): any => {
     const xmlContent = readFile(fileName);
     const { xliff } = xmlParser.parse(xmlContent);
 
@@ -37,4 +38,19 @@ export const fromXliffToCsv = (fileName: string): any => {
     writeStream.write(csvData);
     writeStream.end();
     console.log("File saved: translations.csv");
+};
+
+export const convertXliffToCsv = async() => {
+    const csvToXliffAnswer = await inquirer.prompt([
+        {
+            type: "input",
+            name: "filePath",
+            message: "What is the path of the xliff file?",
+            default: "tours.fr-FR.xliff",
+            validate(input: string) {
+                return input.endsWith(".xliff");
+            },
+        },
+    ]);
+    fromXliffToCsv(csvToXliffAnswer.filePath);
 };

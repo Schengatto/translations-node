@@ -4,6 +4,7 @@ import { LanguageTranslations, Translation } from "../types/translations.js";
 
 import { csvParser } from "../common/csvParser.js";
 import { xmlParser } from "../common/xmlParser.js";
+import inquirer from "inquirer";
 
 const getLanguageCode = (xliff: Record<string, any>): string => {
     return xliff?.file["@_target-language"] ?? "";
@@ -31,7 +32,7 @@ const readFile = (filePath: string): string => {
     return data.toString();
 };
 
-export const fromMultipleXliffToCsv = (xliffFolder: string, filters: string[] = []): any => {
+const fromMultipleXliffToCsv = (xliffFolder: string, filters: string[] = []): any => {
     const map = new Map<string, Translation>();
     const dirPath = path.resolve(xliffFolder);
 
@@ -44,9 +45,9 @@ export const fromMultipleXliffToCsv = (xliffFolder: string, filters: string[] = 
             const { xliff } = xmlParser.parse(xmlContent);
             const { languageCode, translations } = getTranslations(xliff);
 
-            const filteredTranslations = filters.length 
-            ? translations.filter(t => filters.some((filter) => t.key.includes(filter)))
-            : translations;
+            const filteredTranslations = filters.length
+                ? translations.filter((t) => filters.some((filter) => t.key.includes(filter)))
+                : translations;
 
             filteredTranslations.forEach((translation: Translation) => {
                 const key = translation.key;
@@ -59,11 +60,30 @@ export const fromMultipleXliffToCsv = (xliffFolder: string, filters: string[] = 
     const filteredTranslations = [...map.values()];
     const csvData = csvParser.parse(filteredTranslations);
 
-     // Remove quotes around each field
-    const updatedData = csvData.replace(/\"(.*?)\"/g, '$1');
+    // Remove quotes around each field
+    const updatedData = csvData.replace(/\"(.*?)\"/g, "$1");
 
-    const writeStream = fs.createWriteStream(`translations.csv`);
+    const writeStream = fs.createWriteStream(`translations.csv`, "utf16le");
     writeStream.write(updatedData);
     writeStream.end();
     console.log("File saved: translations.csv");
+};
+
+export const convertMultipleXliffToCsv = async () => {
+    const multipleCsvToXliffAnswer = await inquirer.prompt([
+        {
+            type: "input",
+            name: "dirPath",
+            message: "What is the dir path of the xliff file?",
+            default: "./input/xliff-module",
+        },
+        {
+            type: "input",
+            name: "rowFilters",
+            message: "Type key filters separed by comma (eg: 'mykey,mykey2') or leave empty in order to parse all keys",
+            default: "",
+        },
+    ]);
+    const filters = multipleCsvToXliffAnswer.rowFilters.split(",");
+    fromMultipleXliffToCsv(multipleCsvToXliffAnswer.dirPath, filters);
 };

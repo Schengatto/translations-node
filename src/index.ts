@@ -1,19 +1,9 @@
 import inquirer from "inquirer";
-import { fromCsvToJson, fromCsvToJsonFile } from "./functions/fromCsvToJson.js";
-import { generateTranslations } from "./functions/generateXliff.js";
-import { getMissingTranslations } from "./functions/missingTranslations.js";
-import { fromXliffToCsv } from "./functions/fromXliffToCsv.js";
-import { fromMultipleXliffToCsv } from "./functions/fromMultipleXliffToCsv.js";
-
-
-const getAvailableLanguages = (): string[] => {
-    const translations = fromCsvToJson();
-    const availableLanguages =
-        translations.length > 0 ? Object.keys(translations[0]).filter((key) => !["id", "key"].includes(key)) : [];
-
-    return availableLanguages;
-};
-
+import { fromCsvToJsonFile } from "./functions/fromCsvToJson.js";
+import { convertMultipleXliffToCsv } from "./functions/fromMultipleXliffToCsv.js";
+import { convertXliffToCsv } from "./functions/fromXliffToCsv.js";
+import { convertCsvToXliff } from "./functions/generateXliff.js";
+import { checkMissingTranslations } from "./functions/missingTranslations.js";
 
 const CONVERT_CSV_TO_XLIFF = "Convert csv to xliff";
 const CONVERT_CSV_TO_JSON_OPT = "Convert csv to json";
@@ -25,7 +15,7 @@ const menu = await inquirer.prompt([
     {
         type: "list",
         name: "option",
-        message: "Which utils do you want to use?",
+        message: "Which function do you need",
         choices: [
             CONVERT_CSV_TO_XLIFF,
             CONVERT_CSV_TO_JSON_OPT,
@@ -38,90 +28,25 @@ const menu = await inquirer.prompt([
 
 switch (menu.option) {
     case CONVERT_CSV_TO_XLIFF:
-        const convertToXliffAnswer = await inquirer.prompt([
-            {
-                type: "input",
-                name: "module",
-                message: "What is the name of the weblate module? (default: tours)",
-                default: "tours",
-            },
-            {
-                type: "list",
-                name: "language",
-                message: "What is the target language?",
-                choices: getAvailableLanguages(),
-            },
-            {
-                type: "input",
-                name: "languageCode",
-                message: "What is the target language code? (e.g. en-GB)",
-                validate(input) {
-                    return input.includes("-");
-                },
-            },
-        ]);
-        generateTranslations(
-            convertToXliffAnswer.languageCode,
-            convertToXliffAnswer.language,
-            convertToXliffAnswer.module
-        );
+        await convertCsvToXliff();
         break;
 
     case CHECK_MISSING_TRANSLATIONS_OPT:
-        const missingTranslationsAnswer = await inquirer.prompt([
-            {
-                type: "list",
-                name: "language",
-                message: "What is the target language?",
-                choices: getAvailableLanguages(),
-            },
-        ]);
-        const missingTranslations = getMissingTranslations(missingTranslationsAnswer.language);
-        const outputText = missingTranslations.length
-            ? `There are ${missingTranslations.length} missing translations:\n${missingTranslations.join("\n")}`
-            : "No missing translations were found!";
-        console.log(outputText);
+        await checkMissingTranslations();
         break;
 
     case CONVERT_CSV_TO_JSON_OPT:
-        fromCsvToJsonFile();
+        await fromCsvToJsonFile();
         break;
 
     case CONVERT_XLIFF_TO_CSV_OPT:
-        const csvToXliffAnswer = await inquirer.prompt([
-            {
-                type: "input",
-                name: "filePath",
-                message: "What is the path of the xliff file?",
-                default: "tours.fr-FR.xliff",
-                validate(input: string) {
-                    return input.endsWith(".xliff");
-                },
-            },
-        ]);
-        fromXliffToCsv(csvToXliffAnswer.filePath);
+        await convertXliffToCsv();
         break;
 
     case CONVERT_MULTIPLE_XLIFF_TO_CSV_OPT:
-        const multipleCsvToXliffAnswer = await inquirer.prompt([
-            {
-                type: "input",
-                name: "dirPath",
-                message: "What is the dir path of the xliff file?",
-                default: "./input/xliff-module",
-            },
-            {
-                type: "input",
-                name: "rowFilters",
-                message:
-                    "Type key filters separed by comma (eg: 'mykey,mykey2') or leave empty in order to parse all keys",
-                default: "",
-            },
-        ]);
-        const filters = multipleCsvToXliffAnswer.rowFilters.split(",");
-        fromMultipleXliffToCsv(multipleCsvToXliffAnswer.dirPath, filters);
+        await convertMultipleXliffToCsv();
         break;
 
     default:
         console.error("Unknown option");
-}
+};
